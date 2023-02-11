@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  * 게시물 관련 쿼리 파일
+  * @identity  PostMapper_SQL.xml
+  * @author    경성구
+  * @since     2023-01-19
+  *
+-->	
+<mapper namespace="com.sun.studio.mapper.PostMapper">
+	
+	<!--
+	  * 게시물 리스트 조회
+	  * @author    경성구
+	  * @since     2023-01-19
+	-->
+	<select id="selectPagePostVEO" parameterType="com.sun.studio.model.PostVEO" resultType="com.sun.studio.model.PostVEO">
+		  SELECT PY.RN
+		  	   , PY.POST_NO
+		  	   , PY.SUBJECT
+		  	   , TO_CHAR(PY.CREATE_DT, 'YYYY-MM-DD') AS CREATE_DATE
+		  	   , PY.READ_CNT
+		  	   , PY.WRITER
+		  	   , PY.TOTAL
+		    FROM(
+				  SELECT PX.*
+				       , ROWNUM AS RN
+				       , COUNT(*) OVER() TOTAL 
+				    FROM(
+						  SELECT POST_NO
+						       , SUBJECT
+						       , READ_CNT
+						       , WRITER
+						       , CREATE_DT
+						       , MODIFY_DT 
+						  	FROM POST
+						   WHERE BBS_ID = #{bbs_id}
+						   <if test="subject != null and subject != ''">
+						     AND UPPER(SUBJECT) LIKE '%' || UPPER(#{subject}) || '%' 
+						   </if>   
+						   ORDER BY POST_NO DESC
+	   	<![CDATA[
+				        ) PX
+				   WHERE ROWNUM <= #{ed}
+		        ) PY
+		   WHERE PY.RN >= #{st}
+	   ]]>
+	</select>
+	
+	<!--
+	  * 게시물 총건수 조회
+	  * @author    경성구
+	  * @since     2023-01-19
+	-->
+	<select id="countPost" parameterType="com.sun.studio.model.PostVEO" resultType="int">
+		SELECT COUNT(*)
+	      FROM POST LEFT JOIN BBS ON POST.BBS_ID = BBS.BBS_ID
+	     WHERE POST.BBS_ID = #{bbs_id}
+	     <if test="subject != null and subject != ''">
+	       AND UPPER(SUBJECT) LIKE '%' || UPPER(#{subject}) || '%' 
+	     </if>
+	</select>
+	
+	 <!--
+	  * 최근 게시물 4건 조회
+	  * @author    경성구
+	  * @since     2023-02-07
+	-->
+	<select id="selectRecentPostVEO"  parameterType="string" resultType="com.sun.studio.model.PostVEO">
+		SELECT a.POST_NO
+		      , a.SUBJECT
+		      , a.READ_CNT
+		      , a.WRITER
+		 	  , TO_CHAR(a.CREATE_DT, 'YYYY-MM-DD') AS CREATE_DATE
+		 	  , a.FILE_NAME
+		   FROM ( 
+			   SELECT *
+			     FROM POST p 
+			    WHERE p.BBS_ID = #{bbs_id}
+			    ORDER BY p.post_no DESC 
+		        ) a
+		  <![CDATA[      
+		  WHERE ROWNUM <= 4
+		  ]]>
+	  </select>
+	
+	<!--
+	  * 게시물 상세정보 조회
+	  * @author    경성구
+	  * @since     2023-01-20
+	-->
+	<select id="selectOnePostVEO" parameterType="int" resultType="com.sun.studio.model.PostVEO">
+		    SELECT P.POST_NO
+		    	 , P.BBS_ID 
+		    	 , P.SUBJECT 
+		    	 , P.POST_CONTENT 
+		    	 , P.READ_CNT
+		    	 , P.WRITER 
+		    	 , TO_CHAR(P.CREATE_DT,'YYYY-MM-DD') AS CREATE_DATE
+		    	 , TO_CHAR(P.MODIFY_DT,'YYYY-MM-DD') AS MODIFY_DATE
+		    	 , P.CREATE_PNO
+		    	 , P.FILE_NAME
+		      FROM POST P LEFT JOIN BBS B ON P.BBS_ID  = B.BBS_ID  
+		     WHERE P.POST_NO = #{post_no}	
+	</select>
+	
+	<!--
+	  * 조회수 증가
+	  * @author    경성구
+	  * @since     2023-01-20
+  	-->
+	<update id="updateReadCnt" parameterType="int">
+		UPDATE POST
+	       SET READ_CNT = READ_CNT + 1
+	     WHERE POST_NO = #{post_no}
+	</update>
+	
+	<!--
+	  * 게시물 생성
+	  * @author    경성구
+	  * @since     2023-01-20
+	-->
+	<insert id="insertPost" parameterType="com.sun.studio.model.Post">
+		INSERT INTO POST(
+				   POST_NO
+				 , BBS_ID 
+				 , SUBJECT 
+				 , POST_CONTENT
+				 , READ_CNT 
+				 , WRITER 
+				 , CREATE_DT
+				 , CREATE_PNO
+				 , FILE_NAME
+	   )values(
+	   			   post_no.nextval
+	   			 , #{bbs_id}
+	   			 , #{subject}
+	   			 , #{post_content}
+	   			 , 0
+	   			 , #{writer}
+	   			 , sysdate
+	   			 , #{create_pno}
+	   			 , #{file_name}
+	   )
+	</insert>
+	
+	<!--
+	  * 게시물 수정
+	  * @author    경성구
+	  * @since     2023-01-25
+	-->
+	<update id="updatePost" parameterType="com.sun.studio.model.Post">
+		UPDATE POST 
+	      SET SUBJECT = #{subject}
+	      	, POST_CONTENT = #{post_content}
+	      	, MODIFY_DT = sysdate
+	    WHERE POST_NO = #{post_no}
+	</update>
+	
+	<!--
+	  * 게시물 삭제
+	  * @author    경성구
+	  * @since     2023-01-25
+	-->
+	<delete id="deletePost" parameterType="int">
+		DELETE FROM POST
+	     WHERE POST_NO = #{post_no}
+	</delete>
+	
+</mapper>

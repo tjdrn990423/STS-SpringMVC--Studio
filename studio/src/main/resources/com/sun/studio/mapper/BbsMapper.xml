@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  * 게시판 관련 쿼리 파일
+  * @identity  BbsMapper_SQL.xml
+  * @author    경성구
+  * @since     2023-01-14
+  *
+-->	
+<mapper namespace="com.sun.studio.mapper.BbsMapper">
+	
+	<!--
+	  * 게시판 목록 조회
+	  * @author    경성구
+	  * @since     2023-01-14
+	-->	
+	<select id="selectBbs" resultType="com.sun.studio.model.BbsVEO">
+		SELECT ROWNUM AS NUM
+			 , BBS_ID 
+			 , BBS_NAME
+			 , (
+					SELECT COUNT(*)
+				 	  FROM POST
+				 	 WHERE BBS.BBS_ID = POST.BBS_ID
+			    ) AS POST_CNT
+		FROM BBS
+	</select>
+	
+	<!--
+	  * 게시판 상세 정보 조회
+	  * @author    경성구
+	  * @since     2023-01-14
+	-->
+	<select id="selectOneBbs" parameterType="String" resultType="com.sun.studio.model.Bbs">
+		SELECT BBS_ID
+			 , BBS_NAME
+			 , WRITE_LEVEL
+			 , READ_LEVEL
+		  FROM BBS
+		 WHERE BBS_ID=#{bbs_id}
+	</select>
+	
+	<update id="updateBbs" parameterType="com.sun.studio.model.Bbs">
+		UPDATE BBS
+		   SET BBS_ID = #{bbs_id}
+		     , BBS_NAME = #{bbs_name}
+		  	 , READ_LEVEL = #{read_level}
+		  	 , WRITE_LEVEL = #{write_level}
+		 WHERE BBS_ID = #{bbs_id}
+	</update>
+		
+</mapper>

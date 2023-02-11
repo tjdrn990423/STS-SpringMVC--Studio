@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  * 회원 관련 쿼리 파일
+  * @identity  SysUserMapper_SQL.xml
+  * @author    경성구
+  * @since     2023-01-28
+  *
+-->	
+<mapper namespace="com.sun.studio.mapper.SysUserMapper">
+	
+	
+	<!--
+	  * 회원 상세정보 조회
+	  * @author    경성구
+	  * @since     2023-01-28
+	-->
+	<select id="selectOneSysUserVEO" parameterType="Integer" resultType="com.sun.studio.model.SysUserVEO">
+		    SELECT PNO
+		    	 , ID 
+		    	 , PASSWORD 
+		    	 , EMAIL 
+		    	 , PHONE
+		    	 , NAME 
+		    	 , TO_CHAR(CREATE_DT,'YYYY-MM-DD') AS CREATE_DATE
+		      FROM SYSUSER  
+		     WHERE PNO = #{pno}	
+	</select>
+	
+	
+	<!--
+	  * 회원 생성
+	  * @author    경성구
+	  * @since     2023-01-28
+	-->
+	<insert id="insertSysUser" parameterType="com.sun.studio.model.SysUser">
+		INSERT INTO SYSUSER(
+				   PNO
+				 , ID 
+				 , PASSWORD
+				 <if test="email != null and email != ''"> 
+				 , EMAIL
+				 </if>
+				 <if test="phone != null and phone != ''">
+				 , PHONE 
+				 </if>
+				 , CREATE_DT
+				 , NAME
+				 , USER_LEVEL
+	   )values(
+	   			   pno.nextval
+	   			 , #{id}
+	   			 , #{password}
+	   			 <if test="email != null and email != ''">
+	   			 , #{email}
+	   			 </if>
+	   			 <if test="phone != null and phone != ''">
+	   			 , #{phone}
+	   			 </if>
+	   			 , sysdate
+	   			 , #{name}
+	   			 , 1
+	   )
+	</insert>
+	
+	<!--
+	  * 회원 수정
+	  * @author    경성구
+	  * @since     2023-01-28
+	-->
+	<update id="updateSysUser" parameterType="com.sun.studio.model.SysUser">
+		UPDATE SYSUSER 
+	      SET PASSWORD = #{password}
+	      	, EMAIL = #{email}
+	      	, PHONE = #{phone}
+	      	, NAME = #{name}
+	    WHERE PNO = #{pno} 
+	</update>
+	
+	<!--
+	  * 회원 삭제
+	  * @author    경성구
+	  * @since     2023-01-28
+	-->
+	<delete id="deleteSysUser" parameterType="int">
+		DELETE FROM SYSUSER
+	     WHERE PNO = #{pno}
+	</delete>
+	
+	<!--
+	  * 로그인 체크
+	  * @author    경성구
+	  * @since     2023-01-30
+	-->
+	<select id="loginCheck" resultType="String" parameterType="com.sun.studio.model.SysUser">
+	  SELECT NAME
+	    FROM SYSUSER
+	   WHERE ID=#{id} AND PASSWORD = #{password}
+	 </select>
+	 
+	 <!--
+	  * 로그인 체크
+	  * @author    경성구
+	  * @since     2023-02-04
+	-->
+	<select id="loginCheck2" resultType="int" parameterType="com.sun.studio.model.SysUser">
+	  SELECT PNO
+	    FROM SYSUSER
+	   WHERE ID=#{id} AND PASSWORD = #{password}
+	 </select>
+	 
+	 <!--
+	  * 로그인 체크
+	  * @author    경성구
+	  * @since     2023-02-06
+	-->
+	<select id="loginCheck3" resultType="int" parameterType="com.sun.studio.model.SysUser">
+	  SELECT USER_LEVEL
+	    FROM SYSUSER
+	   WHERE ID=#{id} AND PASSWORD = #{password}
+	 </select>
+	
+</mapper>
